@@ -196,7 +196,7 @@ class robotBase():
         return html
 
     def __input_form(self, element_xpath, input_text):
-        self.log("input form : %s" % input_text)
+        #self.log("input form : %s" % input_text)
         if self.driver == None:
             return False
         try:
