@@ -134,8 +134,8 @@ class ProgressWindow(QMainWindow):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
-        #self.move(qr.topLeft())
-        self.move(10, 10)
+        self.move(qr.topLeft())
+        #self.move(10, 10)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -324,7 +324,7 @@ class MainWindow(QMainWindow):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-        self.move(10, 10)
+        #self.move(10, 10)
 
     def initUI(self, title="Web Robot"):
         self.setWindowIcon(QIcon('icon.png'))
