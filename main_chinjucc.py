@@ -357,6 +357,7 @@ class robotChinjucc(robotBase):
             self.log("UnexpectedAlertPresentException 2 %s " % e)
             return False
 
+
         html = self.get_now_page()
 
         return True
