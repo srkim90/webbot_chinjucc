@@ -311,12 +311,18 @@ class robotChinjucc(robotBase):
             break
         html = html.split("\n")
         javascript = None
+        javascript_list = []
         for idx, line in enumerate(html):
             if "예약하기" not in line or 'javascript:' not in line or 'ctl00_ContentPlaceHolder1_lbtOK' not in line:
                 continue
             #<a onclick="if(!ReserveOK()) return false;" id="ctl00_ContentPlaceHolder1_lbtOK" href="javascript:["__doPostBack(\'ctl00$ContentPlaceHolder1$lbtOK\',\'\')", \'>예약하기</a>
             #javascript = "javascript:%s" % line.split('"')
-            javascript = 'javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder1$lbtOK&#39;,&#39;&#39;)'
+            javascript = "javascript:__doPostBack(';ctl00$ContentPlaceHolder1$lbtOK';,';';)"
+            javascript_list.append(javascript)
+            javascript = "javascript:__doPostBack('ctl00$ContentPlaceHolder1$lbtOK','')"
+            javascript_list.append(javascript)
+            javascript = 'javascript:["__doPostBack(\'ctl00$ContentPlaceHolder1$lbtOK\',\'\')'
+            javascript_list.append(javascript)
             break
 
         if javascript == None:
@@ -324,11 +330,18 @@ class robotChinjucc(robotBase):
             return False
 
         # 1. 예약하가 자바스크립트 실행
-        try:
-            self.log("%s" % javascript)
-            self.run_javascript(javascript)
-        except Exception as e:
-            self.log("Error. Fail to call javascript : %s.. return False\n Error. %s" % (javascript, e))
+        f_ok = False
+        for idx, javascript in enumerate(javascript_list):
+            try:
+                self.log("%d : %s" % (idx,javascript))
+                self.run_javascript(javascript)
+            except Exception as e:
+                self.log("Error. Fail to call javascript : %s.. return False\n Error. %s" % (javascript, e))
+                continue
+            f_ok = True
+            break
+        if f_ok == False:
+            self.log("Error. fail javascript all.. .retry return False")
             return False
 
         # 2. alart 예약하기 버튼 누르기
