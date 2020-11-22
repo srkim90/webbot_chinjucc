@@ -10,6 +10,7 @@ from common import *
 from dialog import *
 from datetime import timedelta
 import platform
+import hashlib
 
 #g_log_fn = None
 #g_exit_check_fn = None
@@ -485,6 +486,18 @@ def BotMain(input_param, log_fn, exit_check_fn):
         del bot
         return "Error. 파라미터 산출 실패 (%s), json:%s" % (e, input_param)
  
+    uid_whitelist = ["c93d5717ef8620854765eb79c144f80e", 
+                     "06a4d20f05d65e93687f830f84818895", ]
+       
+
+    uid_md5 = hashlib.md5()
+    uid_binary = "%s\n" % (uid,)
+    uid_md5.update(uid_binary.encode("utf-8"))
+    uid_md5 = uid_md5.hexdigest()
+    print("uid_md5 : %s" % uid_md5)
+    if uid_md5 not in uid_whitelist:
+        return "[Error] 미등록 ID 입니다. 관리자에게 등록 요청을 하셔야 이용 가능 합니다"
+
     if len(uid) <= 0 or len(pwd) <= 0:
         bot.log("ID/PW 미입력")   
         del bot
