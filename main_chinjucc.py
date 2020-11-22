@@ -487,7 +487,10 @@ def BotMain(input_param, log_fn, exit_check_fn):
         return "Error. 파라미터 산출 실패 (%s), json:%s" % (e, input_param)
  
     uid_whitelist = ["c93d5717ef8620854765eb79c144f80e", 
-                     "06a4d20f05d65e93687f830f84818895", ]
+                     "06a4d20f05d65e93687f830f84818895",
+                     "1ef1cbb6f81fd5ab92745ac379e78fda",
+                     "5f45958e26581994817ede7551ed4cfa",
+                     "55b05110605658e51b66eafff7d28ce9", ]
        
 
     uid_md5 = hashlib.md5()
