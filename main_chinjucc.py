@@ -11,7 +11,8 @@ from dialog import *
 from datetime import timedelta
 import platform
 import hashlib
-
+import copy
+#import datetime
 #g_log_fn = None
 #g_exit_check_fn = None
 
@@ -20,9 +21,17 @@ class robotChinjucc(robotBase):
         robotBase.__init__(self, webdriver_path, domain, visible, proxy_ipaddr, proxy_port)
         self.log_handeler = g_log_fn
         self.exit_check_fn = g_exit_check_fn
+        self.n_tabs = 1
 
     def do_login(self, uid, passwd):
         self.get_html("https://chinjucc.co.kr/main")
+
+        window_handles = self.driver.window_handles
+        for idx, item in enumerate(window_handles[1:]):
+            self.driver.switch_to.window(item)
+            self.driver.close()
+        self.driver.switch_to.window(window_handles[0])
+
         if self.click_buttion('//*[@id="header"]/div/div[2]/div[2]/a') == False:
             self.log("[Error] Fail to found submit buttion")
             return False
@@ -35,6 +44,44 @@ class robotChinjucc(robotBase):
         enter_xpath = '//*[@id="ctl00_ContentPlaceHolder1_lbtLogin"]'
         nErr =  super().do_login(uid, passwd, login_uri, id_xpath, pw_xpath, enter_xpath)
         return nErr
+
+    def init_working_tab(self, yyyymmdd, n_tabs=16):
+        yyyy = yyyymmdd[0:4]
+        mm   = yyyymmdd[5:7]
+        dd   = yyyymmdd[8:10]
+        self.n_tabs = n_tabs
+        tabs = self.driver.window_handles
+        for idx in range(n_tabs):
+            body = self.driver.find_element_by_tag_name("body")
+            body.send_keys(Keys.CONTROL + 't')
+            self.driver.execute_script('window.open("about:blank", "_blank");')
+            self.log("open tab : idx=%d" % (idx, ))
+            self.driver.switch_to_window(self.driver.window_handles[idx+1])
+            self.driver.get('https://www.chinjucc.co.kr/Reservation/Reservation.aspx')
+
+        while True:
+            for idx in range(n_tabs):
+                print("switch-tab : %s" % idx + 1)
+                self.driver.get('https://www.chinjucc.co.kr/Reservation/Reservation.aspx')
+                self.driver.switch_to_window(self.driver.window_handles[idx+1])
+                next_javascript="javascript:moveCalendar(1);"
+                while True:
+                    html = self.get_now_page()
+                    html_yyyy = html.split("년")[0].split(">")[-1]
+                    html_mm   = html.split("월")[0].split(">")[-1]
+                    #print("%s %s %s %s %s" % (yyyy, mm, dd, html_yyyy, html_mm))
+                    if html_yyyy == yyyy and html_mm == mm:
+                        break
+                    try:
+                        self.run_javascript(next_javascript)
+                        self.driver.implicitly_wait(10)
+                    except:
+                        self.log("Error in switch tab, idx=%d" % idx)
+                        return False
+                    time.sleep(0.1)
+           
+        self.driver.switch_to_window(tabs[0])
+        return
 
     def do_reservation_test(self, yyyymmdd, hope_1st, hope_2nd): #6,7,8,11,12,13,14
         form_uri="https://www.chinjucc.co.kr/Reservation/ReservationWait.aspx"
@@ -224,15 +271,15 @@ class robotChinjucc(robotBase):
                 self.driver.implicitly_wait(10)
             except:
                 return False
-            time.sleep(1)
-        time.sleep(0.5)
+            time.sleep(0.1)
+        time.sleep(0.05)
         MAX_RETRY=10
         for idx in range(MAX_RETRY):
             try:
                 html = self.get_now_page()
                 break
             except:
-                time.sleep(0.25)
+                time.sleep(0.025)
                 if idx == MAX_RETRY - 1:
                     self.log("[Error] !! max retry : 10")
                     return False
@@ -256,7 +303,7 @@ class robotChinjucc(robotBase):
             except:
                 self.log("Error. Fail to call javascript : %s.. return False" % reservation)
                 return False
-            time.sleep(0.5)
+            time.sleep(0.05)
             html = self.get_now_page()
         else:
             with open("./html2/ok.html", "rb") as fd:
@@ -493,6 +540,7 @@ def BotMain(input_param, log_fn, exit_check_fn):
                      "55b05110605658e51b66eafff7d28ce9", ]
        
 
+
     uid_md5 = hashlib.md5()
     uid_binary = "%s\n" % (uid,)
     uid_md5.update(uid_binary.encode("utf-8"))
@@ -511,7 +559,11 @@ def BotMain(input_param, log_fn, exit_check_fn):
         del bot
         return "로그인에 실패 하였습니다"
     bot.log("Login success!!")
+
+    #bot.init_working_tab(day, 16)
+
     time.sleep(1)
+
     while True:
         try:
             if run_mode == 1:
@@ -541,6 +593,28 @@ def BotMain(input_param, log_fn, exit_check_fn):
         time.sleep(2)
     return True
 
+#selected_time = {}
+#def get_time_list(bast_time):
+#    available_time = "07:14","07:21","07:28","07:35","07:42","07:49","08:03","08:24","08:31","08:38","08:45","11:26","11:33","11:40","11:47","12:08","12:15","12:36","12:43","13:04","13:11","13:18","13:25","13:32";
+#    
+
+def run_muilti_browser_proc(input_param, botObject, delete):
+    input_param = copy.deepcopy(input_param)
+    base_time = input_param["QTextEdit"]["희망시간1"]
+    hh = int(base_time[0:2])
+    mm = int(base_time[3:5])
+    secs = hh * 3600 + mm * 60
+    secs += (delete * 60)
+    base_time = "%02d:%02d" % (secs // 3600, ((secs % 3600)//60))
+    input_param["QTextEdit"]["희망시간1"] = base_time
+
+    print("!!!! : %s" % base_time)
+    
+    hThread = threading.Thread(target=botObject, args=(input_param, None, None))
+    hThread.daemon = True
+    hThread.start()
+
+
 def WinMain(botObject):
     app = QApplication(sys.argv)
     while True:
@@ -549,6 +623,8 @@ def WinMain(botObject):
         win.add_calendar()
         win.add_edit_line("희망시간1")
         win.add_edit_line("희망시간2")
+        win.add_edit_line("동시시도")
+        win.add_edit_line("시간간격")
         win.add_comdobox("코스선택", ["남강코스", "촉석코스"])
         win.add_comdobox("모드선택", ["실전모드", "테스트모드"])
         win.add_summit_buttion()
@@ -563,6 +639,18 @@ def WinMain(botObject):
         #win = ProgressWindowChinjucc(input_param, botObject)
         #win.show()
         #app.exec_()
+        try:
+            n_runn_chrome = int(input_param["QTextEdit"]["동시시도"])
+            n_time_interval = int(input_param["QTextEdit"]["시간간격"])
+        except:
+            n_runn_chrome = 1
+        n_runn_chrome -= 1
+        n_run = 0
+        for idx in range(int(n_runn_chrome/2) + 1):
+            run_muilti_browser_proc(input_param, botObject, ((idx+1) * n_time_interval) *  1)
+            n_run += 1
+            if n_run < n_runn_chrome:
+                run_muilti_browser_proc(input_param, botObject, ((idx+1) * n_time_interval) * -1)
         nErr = botObject(input_param, None, None)
         if nErr != True:
             error_str = "%s" % (nErr,)

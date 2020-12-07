@@ -348,6 +348,10 @@ class MainWindow(QMainWindow):
                         for item2 in self.combobox_dict.keys():
                             if item2 == item:
                                 self.combobox_dict[item].setCurrentIndex(value)
+                if self.edit_dict["동시시도"].toPlainText() == "":
+                    self.edit_dict["동시시도"].setText("8")
+                if self.edit_dict["시간간격"].toPlainText() == "":
+                    self.edit_dict["시간간격"].setText("5")
     def show(self):
         super().show()
 
