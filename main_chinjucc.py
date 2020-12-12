@@ -631,7 +631,7 @@ def WinMain(botObject):
         win.add_comdobox("코스선택", ["남강코스", "촉석코스"])
         win.add_comdobox("모드선택", ["실전모드", "테스트모드"])
         win.add_summit_buttion()
-        win.initUI(title="진주CC 자동예약 <2020-11-15>")
+        win.initUI(title="진주CC 자동예약 <2020-12-12>")
         win.show()
         app.exec_()
 
