@@ -68,8 +68,9 @@ class robotChinjucc(robotBase):
                 while True:
                     html = self.get_now_page()
                     html_yyyy = html.split("년")[0].split(">")[-1]
-                    html_mm   = html.split("월")[0].split(">")[-1]
-                    #print("%s %s %s %s %s" % (yyyy, mm, dd, html_yyyy, html_mm))
+                    #html_mm   = html.split("월")[0].split(">")[-1]
+                    html_mm   = "%02d" % int(html.split("월")[0].split(">")[-1])
+                    #print("%s %s %s html:%s %s" % (yyyy, mm, dd, html_yyyy, html_mm))
                     if html_yyyy == yyyy and html_mm == mm:
                         break
                     try:
@@ -95,7 +96,8 @@ class robotChinjucc(robotBase):
         while True:
             html = self.get_now_page()
             html_yyyy = html.split("년")[0].split(">")[-1]
-            html_mm   = html.split("월")[0].split(">")[-1]
+            #html_mm   = html.split("월")[0].split(">")[-1]
+            html_mm   = "%02d" % int(html.split("월")[0].split(">")[-1])
             #print("%s %s %s %s %s" % (yyyy, mm, dd, html_yyyy, html_mm))
             if html_yyyy == yyyy and html_mm == mm:
                 break
@@ -262,8 +264,9 @@ class robotChinjucc(robotBase):
         while True:
             html = self.get_now_page()
             html_yyyy = html.split("년")[0].split(">")[-1]
-            html_mm   = html.split("월")[0].split(">")[-1]
+            html_mm   = "%02d" % int(html.split("월")[0].split(">")[-1])
             #print("%s %s %s %s %s" % (yyyy, mm, dd, html_yyyy, html_mm))
+            #print("%s %s %s html:%s %s" % (yyyy, mm, dd, html_yyyy, html_mm))
             if html_yyyy == yyyy and html_mm == mm:
                 break
             try:
