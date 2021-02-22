@@ -14,6 +14,30 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QPalette
 #from SubWindow import SubWindow
 
+def check_time_validation(input_time):
+    if len(input_time) == 1 or len(input_time) == 2:
+        try:
+            int_time = int(input_time)
+        except:
+            return None
+        if int_time <= 5 or int_time >= 20:
+            return None
+        return "%02d:00" % (int_time,)
+    elif len(input_time) > 5 or len(input_time) < 3:
+        return None
+    elif ":" not in input_time:
+        return None
+    else:
+        hh = int(input_time.split(":")[0])
+        mm = int(input_time.split(":")[1])
+        if mm >= 60 or mm < 0:
+            return None
+        if hh <= 5 or hh >= 20:
+            return None
+        return input_time
+
+
+
 class ProgressWindow(QMainWindow):
     def __init__(self, input_param, botObject):
         QMainWindow.__init__(self)
