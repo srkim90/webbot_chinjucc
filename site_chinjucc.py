@@ -466,7 +466,11 @@ def ChinjuccMain(input_param, log_fn, exit_check_fn):
                      "06a4d20f05d65e93687f830f84818895",
                      "1ef1cbb6f81fd5ab92745ac379e78fda",
                      "5f45958e26581994817ede7551ed4cfa",
-                     "55b05110605658e51b66eafff7d28ce9", ]
+                     "55b05110605658e51b66eafff7d28ce9", 
+                     "b21a2045433543ae98d82a71006acd59",
+                     "6e5a84e470f9c959b653cdf584f4c6b0",
+                     "232d6b607ae0c4cac7ce9aa3b56386c4", 
+                     ]
        
 
 
