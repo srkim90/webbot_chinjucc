@@ -172,6 +172,8 @@ class robotGeojeViewcc(robotBase):
         time.sleep(0.25)
         ReserveSet = []
 
+        html = self.get_now_page()
+        lines = html.split("\n")
 
         ln_tr = 0
         for line in lines:
@@ -218,7 +220,7 @@ class robotGeojeViewcc(robotBase):
             except Exception as e:
                 err_str = "예약실패, 다른시간 재시도 : %s, Error str = %s" % (bast_time, e)
                 print(err_str)
-                return err_str
+                continue
 
         return False
 
