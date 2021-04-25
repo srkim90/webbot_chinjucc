@@ -169,6 +169,7 @@ class robotGeojeViewcc(robotBase):
         self.click_buttion(xpath)
 
         self.driver.implicitly_wait(10)
+        time.sleep(0.25)
         ReserveSet = []
 
 
@@ -208,13 +209,16 @@ class robotGeojeViewcc(robotBase):
             try:
                 self.click_buttion(summit_xpath)
                 self.driver.implicitly_wait(10)
+                time.sleep(0.25)
+
                 alert = self.driver.switch_to.alert
                 message = alert.text
                 self.log("message2: %s" % (message,))
                 alert.accept()
-            except:
-                print("예약실패, 다른시간 재시도 : %s" % (bast_time,))
-                continue
+            except Exception as e:
+                err_str = "예약실패, 다른시간 재시도 : %s, Error str = %s" % (bast_time, e)
+                print(err_str)
+                return err_str
 
         return False
 
