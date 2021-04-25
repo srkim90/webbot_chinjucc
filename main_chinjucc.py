@@ -112,11 +112,15 @@ def WinMain(botObject):
         n_runn_chrome -= 1
         n_run = 0
 
+
         print(input_param["QComboBox"]["장소선택"])
         if input_param["QComboBox"]["장소선택"] == 1:
             botObject = GeojeViewccMain
 
-        for idx in range(int(n_runn_chrome/2) + 1):
+        n_run = int(n_runn_chrome/2) + 1
+        if n_runn_chrome <= 1:
+            n_run = 0
+        for idx in range(n_run):
             run_muilti_browser_proc(input_param, botObject, ((idx+1) * n_time_interval) *  1)
             n_run += 1
             if n_run < n_runn_chrome:

@@ -21,13 +21,13 @@ class robotGeojeViewcc(robotBase):
         self.n_tabs = 1
 
     def do_login(self, uid, passwd, yyyymmdd):
-        self.get_html("https://www.geojeview.co.kr/auth/login")
+        self.get_html("https://www.geojeview.co.kr/Reservation/?date=%s" % yyyymmdd)
         #time.sleep(1)
         self.driver.implicitly_wait(5)
         login_uri = None
-        id_xpath = '/html/body/div[3]/div/form/div/div[1]/div[3]/div[1]/ul/li[1]/div/input'
-        pw_xpath = '/html/body/div[3]/div/form/div/div[1]/div[3]/div[1]/ul/li[2]/div/input'
-        enter_xpath = '/html/body/div[3]/div/form/div/div[1]/div[3]/div[2]/div/button'
+        id_xpath = '/html/body/div[3]/div/form/div/div[1]/dl[1]/dd/input'
+        pw_xpath = '/html/body/div[3]/div/form/div/div[1]/dl[2]/dd/input'
+        enter_xpath = '/html/body/div[3]/div/form/div/div[2]/input'
         nErr =  super().do_login(uid, passwd, login_uri, id_xpath, pw_xpath, enter_xpath)
 
         window_handles = self.driver.window_handles
@@ -137,82 +137,89 @@ class robotGeojeViewcc(robotBase):
         yyyy = yyyymmdd[0:4]
         mm   = yyyymmdd[5:7]
         dd   = yyyymmdd[8:10]
-        form_uri="https://www.geojeview.co.kr/booking"
-        html = self.get_html(form_uri)
-
-        lines = html.split("\n")
-        ln_table = 0
-        ln_tr = 0
-        ln_td = 0
-        xpath = None
-        yyyymmdd2 = yyyymmdd.replace("-", "")
-        for line in lines:
-            if '<table class="booking-calendar table table-bordered date-info">' in line:
-                ln_table += 1
-                ln_tr = -1
-                ln_td = 0
-            if '<tr>' in line: 
-                ln_tr += 1
-                ln_td = 0
-            if '<td class="' in line: 
-                ln_td += 1
-
-            if yyyymmdd2 in line:
-                if 'completed' in line:
-                    return "[%s] 해당일자 예약 완료되었습니다." % yyyymmdd
-                xpath='//*[@id="booking-index"]/div[1]/table[%d]/tbody/tr[%d]/td[%d]/a' % (ln_table, ln_tr, ln_td)
-                break
-        
-        if xpath == None:
-            return False
-        print("selected : yyyymmdd=%s, xpath=%s" % (yyyymmdd, xpath))
-        self.click_buttion(xpath)
-
+        reserv_key = 'https://www.geojeview.co.kr/Reservation/new/'
+        form_uri="https://www.geojeview.co.kr/Reservation/?date=%s%s%s" % (yyyy,mm,dd,)
+        self.get_html(form_uri)
+        self.run_javascript("day_click('%s%s%s')" % (yyyy,mm,dd,))
         self.driver.implicitly_wait(10)
         ReserveSet = []
 
+        timeout = 60
+        waittime = 0.05
+        max_idx = int(1.0 / waittime) * timeout
 
-        ln_tr = 0
+        #print("timeout: %dsec, waittime: %fsec, max_idx: %d" % (timeout, waittime, max_idx))
+
+        for idx in range(max_idx):
+            time.sleep(waittime)
+            html = self.get_now_page()
+            if reserv_key in html:
+                print("find !!!")
+                break
+            elif '<tbody><tr><td colspan="6">예약 가능한 시간이 없습니다.</td>' in html:
+                return False
+            if idx > 5:
+                print("yet : %d" % idx)
+
+        if reserv_key not in html:
+            return False
+
+        lines = html.split("\n")
+        
+        history = []
         for line in lines:
-            #<button type="button" class="btn btn-sm btn-primary btn-booking" data-date="20210426" data-cours="B" data-time="0644" data-hole="18">예약
-            if "btn btn-sm btn-primary btn-booking" in line:
-                ln_tr += 1
-                xpath = '//*[@id="booking-index"]/div[2]/div/div/table/tbody/tr[%d]/td[5]/button' % (ln_tr,)
-                time_hhmm = line.split('data-time="')[-1].split('"')[0]
-                time_yyyymmdd = line.split('data-date="')[-1].split('"')[0]
-                cours = line.split('data-cours="')[-1].split('"')[0]
-                result_dict = {
-                        "time"      :time_hhmm,
-                        "course"    :cours, # A=해돋이, B=해넘이
-                        "yyyymmdd"  :time_yyyymmdd,
-                        "url"       : xpath,
-                        }
-                ReserveSet.append(result_dict)
+            #if "예약하기" not in line:
+            #    continue
+            if reserv_key not in line:
+                continue
+            
+            tok = line.split('"')
+            for item in tok:
+                if reserv_key not in item:
+                    continue
+                val = item.split(reserv_key)[1].split('"')[0]
+                reservation_url = reserv_key + val
+                if reservation_url in history:
+                    continue
 
+                history.append(reservation_url)
+
+                result_dict = {
+                        "time"      : val.split("/")[2],
+                        "course"    : val.split("/")[1], # A=해돋이, B=해넘이
+                        "yyyymmdd"  : val.split("/")[0],
+                        "url"       : reservation_url,
+                        }
+                if result_dict["course"] == 'A':
+                    result_dict["course"] = 0
+                else:
+                    result_dict["course"] = 1
+                ReserveSet.append(result_dict)
         while True:
             if len(ReserveSet) == 0:
                 return False
             bast_time = self.select_reservation_time(ReserveSet, hope_1st, hope_2nd, cource_index)
             #print("AAA : %s , %s %s  M<< %s" % (bast_time, hope_1st, hope_2nd, cource_index))
             ReserveSet.remove(bast_time)
+            html = self.get_html(bast_time["url"])
 
-            xpath = bast_time["url"]
-            self.click_buttion(xpath) # 예약 버튼
-            self.driver.implicitly_wait(10)
-            #html = self.get_now_page()
-            #if "약관 동의 및 예약 완료" not in html:
-            #    print('not exist : 약관 동의 및 예약 완료 %s' % bast_time)
-            #    continue
-            summit_xpath = '//*[@id="form-create"]/div[8]/button[1]' # 약관 동의 및 예약 완료 팝업 누르기
-
-            try:
-                self.click_buttion(summit_xpath)
-                self.driver.implicitly_wait(10)
-                alert = self.driver.switch_to.alert
-                message = alert.text
-                self.log("message2: %s" % (message,))
-                alert.accept()
-            except:
+            if '<input style="border: 0px;" type="submit" value="예약하기">' in html:
+                self.click_buttion('//*[@id="ctl00_pnlMainCnt"]/div[4]/span[1]/input')
+                #alart 예약완료 버튼 누르기
+                try:
+                    alert = self.driver.switch_to.alert
+                    message = alert.text
+                    self.log("message2: %s" % (message,))
+                    alert.accept()
+                    #alert.dismiss()
+                except common.exceptions.NoAlertPresentException as e:
+                    self.log("11112 : NO alarm %s " % e)
+                    return False
+                except common.exceptions.UnexpectedAlertPresentException as e:
+                    self.log("UnexpectedAlertPresentException 2 %s " % e)
+                print("예약완료 : %s" % (bast_time,))
+                return True
+            else:
                 print("예약실패, 다른시간 재시도 : %s" % (bast_time,))
                 continue
 
