@@ -161,6 +161,7 @@ class robotBase():
         try:
             self.driver.implicitly_wait(10)
             self.driver.get(url)
+            self.driver.implicitly_wait(60)
             #if waitclass != None:
             #    wait = WebDriverWait(self.driver, 3)
             #    try:

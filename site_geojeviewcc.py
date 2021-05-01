@@ -168,8 +168,8 @@ class robotGeojeViewcc(robotBase):
         print("selected : yyyymmdd=%s, xpath=%s" % (yyyymmdd, xpath))
         self.click_buttion(xpath)
 
-        self.driver.implicitly_wait(10)
-        time.sleep(0.25)
+        self.driver.implicitly_wait(60)
+        time.sleep(1.25)
         ReserveSet = []
 
         html = self.get_now_page()
@@ -201,7 +201,7 @@ class robotGeojeViewcc(robotBase):
 
             xpath = bast_time["url"]
             self.click_buttion(xpath) # 예약 버튼
-            self.driver.implicitly_wait(10)
+            self.driver.implicitly_wait(60)
             #html = self.get_now_page()
             #if "약관 동의 및 예약 완료" not in html:
             #    print('not exist : 약관 동의 및 예약 완료 %s' % bast_time)
@@ -210,8 +210,8 @@ class robotGeojeViewcc(robotBase):
 
             try:
                 self.click_buttion(summit_xpath)
-                self.driver.implicitly_wait(10)
-                time.sleep(0.25)
+                self.driver.implicitly_wait(60)
+                time.sleep(1.25)
 
                 alert = self.driver.switch_to.alert
                 message = alert.text
